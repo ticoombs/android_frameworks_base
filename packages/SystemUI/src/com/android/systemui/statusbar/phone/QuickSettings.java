@@ -204,6 +204,13 @@ class QuickSettings {
     void setup(NetworkController networkController, BluetoothController bluetoothController,
             BatteryController batteryController, LocationController locationController,
             RotationLockController rotationLockController) {
+
+        // shutdown controllers
+        shutdown(networkController, bluetoothController,
+                 batteryController,locationController,
+                 rotationLockController);
+
+        // setup controllers
         mBluetoothController = bluetoothController;
         mRotationLockController = rotationLockController;
         mLocationController = locationController;
@@ -301,6 +308,18 @@ class QuickSettings {
             }
         };
         mUserInfoTask.execute();
+    }
+
+    public void shutdown(NetworkController networkController, BluetoothController bluetoothController,
+                         BatteryController batteryController, LocationController locationController,
+                         RotationLockController rotationLockController) {
+        networkController.removeNetworkSignalChangedCallback(mModel);
+        bluetoothController.removeStateChangedCallback(mModel);
+        batteryController.removeStateChangedCallback(mModel);
+        locationController.removeSettingsChangedCallback(mModel);
+        rotationLockController.removeRotationLockControllerCallback(mModel);
+
+        mContainerView.removeAllViews();
     }
 
     private void setupQuickSettings() {
@@ -1366,8 +1385,8 @@ class QuickSettings {
     void updateResources() {
         Resources r = mContext.getResources();
 
-        // Update the model
-        mModel.refreshBatteryTile();
+        // Update the battery tile
+        updateBattery();
 
         QuickSettingsContainerView container = ((QuickSettingsContainerView)mContainerView);
 
