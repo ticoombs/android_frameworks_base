@@ -170,6 +170,7 @@ public class ActionTarget {
             Intent intent = new Intent(TOGGLE_FLASHLIGHT);
             intent.putExtra(AUTO_START, true);
             mContext.sendBroadcast(intent);
+            return true;
         } else {
             try {
                 Intent intent = Intent.parseUri(action, 0);
