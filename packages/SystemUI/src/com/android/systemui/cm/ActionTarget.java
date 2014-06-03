@@ -65,6 +65,9 @@ import java.util.List;
 public class ActionTarget {
     private static final String TAG = "ActionTarget";
 
+    private static final String AUTO_START = "AUTO_START";
+    private static final String TOGGLE_FLASHLIGHT = "TOGGLE_FLASHLIGHT";
+
     private AudioManager mAm;
     private Context mContext;
     private Handler mHandler;
@@ -164,9 +167,9 @@ public class ActionTarget {
             }
             return true;
         } else if (action.equals(ACTION_LIGHTBULB)) {
-            Intent intent = new Intent(LightbulbConstants.ACTION_TOGGLE_STATE);
+            Intent intent = new Intent(TOGGLE_FLASHLIGHT);
+            intent.putExtra(AUTO_START, true);
             mContext.sendBroadcast(intent);
-            return true;
         } else {
             try {
                 Intent intent = Intent.parseUri(action, 0);
