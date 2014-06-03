@@ -2704,12 +2704,6 @@ public final class Settings {
         public static final String LOCKSCREEN_MAXIMIZE_WIDGETS = "lockscreen_maximize_widgets";
 
         /**
-         * Whether a custom lockscreen wallpaper is enabled
-         * @hide
-         */
-        public static final String LOCKSCREEN_WALLPAPER = "lockscreen_wallpaper";
-
-        /**
          * Whether to use the carousel as widget container on portrait view
          * @hide
          */
@@ -3153,20 +3147,6 @@ public final class Settings {
         public static final String KEY_APP_SWITCH_LONG_PRESS_ACTION = "key_app_switch_long_press_action";
 
         /**
-         * Allows to show the background activity back the lockscreen
-         * Show the content behind the lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_SEE_THROUGH = "lockscreen_see_through";
-
-        /**
-         * Allows blurring the lockscreen background
-         * @hide
-         */
-        public static final String LOCKSCREEN_BLUR_BEHIND = "lockscreen_blur_behind";
-        public static final String LOCKSCREEN_BLUR_RADIUS = "lockscreen_blur_radius";
-
-        /**
          * Enables/disables lockscreen notifications
          * @hide
          */
@@ -3342,6 +3322,12 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_NETWORK_HIDE = "status_bar_network_hide";
+
+        /**
+         * Show the pending notification counts as overlays on the status bar
+         * @hide
+         */
+        public static final String STATUS_BAR_NOTIFICATION_COUNT = "status_bar_notification_count";
 
         /**
           * Always turn on screen after call ignoring proximity?

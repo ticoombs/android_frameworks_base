@@ -23,10 +23,12 @@ import com.android.server.display.DisplayManagerService;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.ContentObserver;
 import android.content.res.Resources;
+import android.database.ContentObserver;
+import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
