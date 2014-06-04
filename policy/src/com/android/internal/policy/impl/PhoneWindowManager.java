@@ -710,14 +710,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mStatusBar != null && !mStatusBar.isVisibleLw()) {
                 flags |= EdgeGesturePosition.TOP.FLAG;
             }
-            if (mNavigationBar != null && !mNavigationBar.isVisibleLw()
-                    && (mImmersiveModeStyle == IMMERSIVE_MODE_FULL
-                           | mImmersiveModeStyle == IMMERSIVE_MODE_HIDE_ONLY_NAVBAR ?
-                                   !immersiveModeImplementsPie() : true)){
-                if (mNavigationBarOnBottom) {
-                    flags |= EdgeGesturePosition.BOTTOM.FLAG;
-                } else {
-                    flags |= EdgeGesturePosition.RIGHT.FLAG;
+            boolean applyToNavBarEdges = immersiveModeHidesNavigationBar() ?
+                    !immersiveModeImplementsPie() : true;
+            if (mNavigationBar != null && !mNavigationBar.isVisibleLw()){
+                if (applyToNavBarEdges) {
+                    if (mNavigationBarOnBottom) {
+                        flags |= EdgeGesturePosition.BOTTOM.FLAG;
+                    } else {
+                        flags |= EdgeGesturePosition.RIGHT.FLAG;
+                    }
                 }
             }
         }
@@ -1132,21 +1133,21 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     }
                     @Override
                     public void onSwipeFromBottom() {
-                        if (mNavigationBar != null && mNavigationBarOnBottom && !immersiveModeImplementsPie()) {
+                        if (mNavigationBar != null && mNavigationBarOnBottom) {
                             requestTransientBars(mNavigationBar);
                         }
                     }
                     @Override
                     public void onSwipeFromRight() {
                         if (mNavigationBar != null && !mNavigationBarOnBottom &&
-                                !mNavigationBarLeftInLandscape && !immersiveModeImplementsPie()) {
+                                !mNavigationBarLeftInLandscape) {
                             requestTransientBars(mNavigationBar);
                         }
                     }
                     @Override
                     public void onSwipeFromLeft() { 
                         if (mNavigationBar != null && !mNavigationBarOnBottom &&
-                                mNavigationBarLeftInLandscape && !immersiveModeImplementsPie()) {
+                                mNavigationBarLeftInLandscape) {
                             requestTransientBars(mNavigationBar);
                         }
                     }
@@ -3021,6 +3022,24 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             // then take that into account.
             navVisible |= !canHideNavigationBar();
 
+            // Height of the navigation bar when presented horizontally at bottom
+            mNavigationBarHeightForRotation[mPortraitRotation] =
+            mNavigationBarHeightForRotation[mUpsideDownRotation] =
+                    immersiveModeHidesNavigationBar() && immersiveModeImplementsPie() ?
+                            0 : mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height);
+            mNavigationBarHeightForRotation[mLandscapeRotation] =
+            mNavigationBarHeightForRotation[mSeascapeRotation] =
+                    immersiveModeHidesNavigationBar() && immersiveModeImplementsPie() ?
+                            0 : mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height_landscape);
+
+            // Width of the navigation bar when presented vertically along one side
+            mNavigationBarWidthForRotation[mPortraitRotation] =
+            mNavigationBarWidthForRotation[mUpsideDownRotation] =
+            mNavigationBarWidthForRotation[mLandscapeRotation] =
+            mNavigationBarWidthForRotation[mSeascapeRotation] =
+                    immersiveModeHidesNavigationBar() && immersiveModeImplementsPie() ?
+                            0 : mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_width);
+
             boolean updateSysUiVisibility = false;
             if (mNavigationBar != null) {
                 boolean transientNavBarShowing = mNavigationBarController.isTransientShowing();
@@ -4667,6 +4686,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         synchronized (mWindowManagerFuncs.getWindowManagerLock()) {
             boolean sb = mStatusBarController.checkShowTransientBarLw();
             boolean nb = mNavigationBarController.checkShowTransientBarLw();
+            boolean triggerNavbar = immersiveModeHidesNavigationBar() ?
+                    !immersiveModeImplementsPie() : true;
             if (sb || nb) {
                 WindowState barTarget = sb ? mStatusBar : mNavigationBar;
                 if (sb ^ nb && barTarget != swipeTarget) {
@@ -4674,7 +4695,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     return;
                 }
                 if (sb) mStatusBarController.showTransient();
-                if (nb && !immersiveModeImplementsPie()) mNavigationBarController.showTransient();
+                if (nb && triggerNavbar) mNavigationBarController.showTransient();
                 mImmersiveModeConfirmation.confirmCurrentPrompt();
                 updateSystemUiVisibilityLw();
             }
