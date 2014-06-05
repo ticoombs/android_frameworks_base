@@ -2779,13 +2779,6 @@ public final class Settings {
          */
         public static final String HEADSET_PLUG_MUSIC_ACTIVE = "headset_plug_music_active";
 
-        /**
-	*
-	* SMOOTH PROGRESS BAR interpolator
-	* @hide
-	*/
-        public static final String PROGRESSBAR_INTERPOLATOR = "progressbar_interpolator";
-
 	/**
 	*
 	* SMOOTH PROGRESS BAR Mirror
