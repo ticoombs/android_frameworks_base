@@ -5556,10 +5556,10 @@ public class PackageManagerService extends IPackageManager.Stub {
             HashMap<String, PackageParser.Package> map = mOverlays.get(target);
             if (map != null) {
                 map.remove(opkg.packageName);
-            }
 
-            if (map.isEmpty()) {
-                mOverlays.remove(target);
+                if (map.isEmpty()) {
+                    mOverlays.remove(target);
+                }
             }
 
             PackageParser.Package targetPkg = mPackages.get(target);
@@ -5586,7 +5586,6 @@ public class PackageManagerService extends IPackageManager.Stub {
            String idmapPath = getIdmapPath(appPkg, opkg);
            new File(idmapPath).delete();
         }
-        mOverlays.remove(appPkg.packageName);
     }
 
     private void recursiveDelete(File f) {
