@@ -365,7 +365,7 @@ public class PhoneStateListener {
         }
     };
 
-    Handler mHandler = new Handler() {
+    Handler mHandler = new Handler(Looper.getMainLooper() ) {
         public void handleMessage(Message msg) {
             //Rlog.d("TelephonyRegistry", "what=0x" + Integer.toHexString(msg.what) + " msg=" + msg);
             switch (msg.what) {

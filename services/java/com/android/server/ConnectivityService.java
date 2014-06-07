@@ -2386,6 +2386,9 @@ public class ConnectivityService extends IConnectivityManager.Stub {
             mInetConditionChangeInFlight = false;
             // Don't do this - if we never sign in stay, grey
             //reportNetworkCondition(mActiveDefaultNetwork, 100);
+
+            // Update TCP delayed ACK settings
+            updateTcpDelayedAckSettings(thisNet);
             updateNetworkSettings(thisNet);
         }
         thisNet.setTeardownRequested(false);
@@ -3124,8 +3127,10 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                 case NetworkStateTracker.EVENT_NETWORK_SUBTYPE_CHANGED: {
                     info = (NetworkInfo) msg.obj;
                     int type = info.getType();
-                    if (mNetConfigs[type].isDefault()) updateNetworkSettings(mNetTrackers[type]);
-                    updateNetworkSettings(mNetTrackers[type]);
+                    if (mNetConfigs[type].isDefault()) {
+                        updateNetworkSettings(mNetTrackers[type]);
+                        updateTcpDelayedAckSettings(mNetTrackers[type]);
+                    }
                     break;
                 }
             }
