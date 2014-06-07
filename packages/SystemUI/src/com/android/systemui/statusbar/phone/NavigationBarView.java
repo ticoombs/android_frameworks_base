@@ -512,7 +512,8 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
                         ? (mVertical ? mRecentAltLandIcon : mRecentAltIcon)
                         : (mVertical ? mRecentLandIcon : mRecentIcon));
         } else if (button == NavigationCallback.NAVBAR_HOME_HINT) {
-            ((ImageView)getHomeButton()).setImageDrawable(mVertical ? mHomeLandIcon : mHomeIcon);
+            ((ImageView)findViewWithTag(NavbarEditor.NAVBAR_HOME)).setImageDrawable(
+                mVertical ? mHomeLandIcon : mHomeIcon);
         }
         setDisabledFlags(mDisabledFlags, true);
     }
