@@ -686,6 +686,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 target = mStatusBar;
             } else if (position == EdgeGesturePosition.BOTTOM  && mNavigationBarOnBottom) {
                 target = mNavigationBar;
+            } else if (position == EdgeGesturePosition.LEFT
+                    && !mNavigationBarOnBottom && mNavigationBarLeftInLandscape) {
+                target = mNavigationBar;
             } else if (position == EdgeGesturePosition.RIGHT && !mNavigationBarOnBottom) {
                 target = mNavigationBar;
             }
@@ -717,6 +720,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 if (applyToNavBarEdges) {
                     if (mNavigationBarOnBottom) {
                         flags |= EdgeGesturePosition.BOTTOM.FLAG;
+                    } else if (mNavigationBarLeftInLandscape) {
+                        flags |= EdgeGesturePosition.LEFT.FLAG;
                     } else {
                         flags |= EdgeGesturePosition.RIGHT.FLAG;
                     }
@@ -3027,11 +3032,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mNavigationBarHeightForRotation[mPortraitRotation] =
             mNavigationBarHeightForRotation[mUpsideDownRotation] =
                     immersiveModeHidesNavigationBar() && immersiveModeImplementsPie() ?
-                            0 : mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height);
+                    0 : Math.round(mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height) *
+                    Settings.System.getFloat(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_HEIGHT, 1f));
             mNavigationBarHeightForRotation[mLandscapeRotation] =
             mNavigationBarHeightForRotation[mSeascapeRotation] =
                     immersiveModeHidesNavigationBar() && immersiveModeImplementsPie() ?
-                            0 : mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height_landscape);
+                    0 : Math.round(mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height) *
+                    Settings.System.getFloat(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_HEIGHT, 1f));
 
             // Width of the navigation bar when presented vertically along one side
             mNavigationBarWidthForRotation[mPortraitRotation] =
@@ -3039,7 +3048,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mNavigationBarWidthForRotation[mLandscapeRotation] =
             mNavigationBarWidthForRotation[mSeascapeRotation] =
                     immersiveModeHidesNavigationBar() && immersiveModeImplementsPie() ?
-                            0 : mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_width);
+                    0 : Math.round(mContext.getResources().getDimensionPixelSize(com.android.internal.R.dimen.navigation_bar_height_landscape) *
+                    Settings.System.getFloat(mContext.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_HEIGHT, 1f));
 
             boolean updateSysUiVisibility = false;
             if (mNavigationBar != null) {
