@@ -7,16 +7,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.storage.IMountService;
 import android.os.storage.StorageEventListener;
 import android.os.storage.StorageManager;
-import android.os.storage.StorageResultCode;
 import android.os.storage.StorageVolume;
 import android.util.Log;
 import android.view.WindowManager;
@@ -43,7 +40,7 @@ public class ExternalStorageFormatter extends Service
     public static final String FORMAT_AND_FACTORY_RESET = "com.android.internal.os.storage.FORMAT_AND_FACTORY_RESET";
 
     public static final String EXTRA_ALWAYS_RESET = "always_reset";
-    public static final int FORMAT_ERROR = -1;
+
     // If non-null, the volume to format. Otherwise, will use the default external storage directory
     private StorageVolume mStorageVolume;
 
@@ -62,13 +59,6 @@ public class ExternalStorageFormatter extends Service
     private boolean mFactoryReset = false;
     private boolean mAlwaysReset = false;
 
-    private Handler mHandler = new Handler () {
-        public void handleMessage(Message msg) {
-            if (msg.what == FORMAT_ERROR)
-                Toast.makeText(ExternalStorageFormatter.this,
-                                        R.string.format_error, Toast.LENGTH_LONG).show();
-        }
-    };
     StorageEventListener mStorageListener = new StorageEventListener() {
         @Override
         public void onStorageStateChanged(String path, String oldState, String newState) {
@@ -262,8 +252,8 @@ public class ExternalStorageFormatter extends Service
                             mountService.formatVolume(extStoragePath);
                             success = true;
                         } catch (Exception e) {
-                            Message message = Message.obtain(mHandler, FORMAT_ERROR, null);
-                            mHandler.sendMessage(message);
+                            Toast.makeText(ExternalStorageFormatter.this,
+                                    R.string.format_error, Toast.LENGTH_LONG).show();
                         }
                         if (success) {
                             if (mFactoryReset) {

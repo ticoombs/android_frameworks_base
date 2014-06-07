@@ -255,8 +255,6 @@ public abstract class BaseStatusBar extends SystemUI implements
                     Settings.System.PIE_STATE), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.PIE_GRAVITY), false, this);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.PIE_MODE), false, this);
             update();
         }
 
@@ -439,8 +437,6 @@ public abstract class BaseStatusBar extends SystemUI implements
         if(reset) {
             Settings.System.putIntForUser(resolver,
                     Settings.System.PIE_GRAVITY, 0, UserHandle.USER_CURRENT);
-            Settings.System.putIntForUser(resolver,
-                    Settings.System.PIE_MODE, 0, UserHandle.USER_CURRENT);
             toggleOrientationListener(false);
         } else {
             getOrientationListener();

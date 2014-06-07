@@ -3536,6 +3536,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
             addNotificationViews(createNotificationViews(notifData.first, notifData.second));
         }
 
+        updateSettings();
         setAreThereNotifications();
 
         mStatusBarContainer.addView(mStatusBarWindow);
