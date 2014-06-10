@@ -304,9 +304,7 @@ public class KeyguardSimPukView extends KeyguardAbsKeyInputView
         return mPinText.equals(mPasswordEntry.getText().toString());
     }
 
-    protected void updateSim() {
-        getSimUnlockProgressDialog().show();
-
+    private void updateSim() {
         if (mCheckSimPukThread == null) {
             mCheckSimPukThread = new CheckSimPuk(mPukText, mPinText) {
                 void onSimLockChangedResponse(final int result, final int attemptsRemaining) {
@@ -342,6 +340,8 @@ public class KeyguardSimPukView extends KeyguardAbsKeyInputView
                     });
                 }
             };
+
+            getSimUnlockProgressDialog().show();
             mCheckSimPukThread.start();
         }
     }
