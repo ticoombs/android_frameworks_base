@@ -1040,6 +1040,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     };
 
+    private Context getUiContext() {
+        if (mUiContext == null) {
+            mUiContext = ThemeUtils.createUiContext(mContext);
+        }
+        return mUiContext != null ? mUiContext : mContext;
+    }
+
     Runnable mBackLongPress = new Runnable() {
         public void run() {
             if (DevUtils.killForegroundApplication(mContext)) {
@@ -1169,15 +1176,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public void init(Context context, IWindowManager windowManager,
             WindowManagerFuncs windowManagerFuncs) {
         mContext = context;
-        mUiContext = ThemeUtils.createUiContext(context);
-        ThemeUtils.registerThemeChangeReceiver(context, new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mUiContext = ThemeUtils.createUiContext(mContext);
-            }
-        });
-
-
         mWindowManager = windowManager;
         mWindowManagerFuncs = windowManagerFuncs;
         mHeadless = "1".equals(SystemProperties.get("ro.config.headless", "0"));
@@ -1357,6 +1355,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         mPowerMenuReceiver = new PowerMenuReceiver(context);
         mPowerMenuReceiver.registerSelf();
+
+        ThemeUtils.registerThemeChangeReceiver(context, new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                mUiContext = null;
+            }
+        });
     }
 
     private void updateKeyAssignments() {
