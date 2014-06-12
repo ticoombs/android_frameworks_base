@@ -211,6 +211,7 @@ public class PieMenu extends FrameLayout {
     private SnapPoint[] mSnapPoint = new SnapPoint[3];
     int mSnapRadius;
     int mSnapThickness;
+    int mNumberOfSnapPoints;
 
     private int mImmersiveMode;
     private boolean mOpen;
@@ -334,6 +335,7 @@ public class PieMenu extends FrameLayout {
             mSnapPoint[snapIndex ++] = new SnapPoint(
                     mWidth / 2, mHeight - mSnapThickness / 2, mSnapRadius, Gravity.BOTTOM);
         }
+        mNumberOfSnapPoints = snapIndex;
 
         // create pie
         mEmptyAngle = (int) (mPieAngle * mPieSize);
@@ -720,7 +722,7 @@ public class PieMenu extends FrameLayout {
                     mOuterChevronRadius : mOuterChevronLiteRadius;
 
             if (mCenterDistance > threshold) {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < mNumberOfSnapPoints; i++) {
                     SnapPoint snap = mSnapPoint[i];
 
                     float snapDistanceX = snap.x - mX;
@@ -890,7 +892,7 @@ public class PieMenu extends FrameLayout {
             // open panel
             animateIn();
         } else if (MotionEvent.ACTION_MOVE == action) {
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < mNumberOfSnapPoints; i++) {
                 SnapPoint snap = mSnapPoint[i];
 
                 float snapDistanceX = snap.x - mX;
