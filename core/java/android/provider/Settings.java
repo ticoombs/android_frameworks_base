@@ -3899,9 +3899,13 @@ public final class Settings {
         public static final String DIALPAD_STATE = "dialpad_state";
 
         /**
-         * Hover, default is 0 (off).
-         * 0 = disabled
-         * 1 = enabled
+         * Settings to backup. This is here so that it's in the same place as the settings
+         * keys and easy to update.
+         *
+         * NOTE: Settings are backed up and restored in the order they appear
+         *       in this array. If you have one setting depending on another,
+         *       make sure that they are ordered appropriately.
+         *
          * @hide
          */
         public static final String HOVER_STATE = "hover_state";

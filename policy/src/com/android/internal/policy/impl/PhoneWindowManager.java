@@ -210,10 +210,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Pie
     private static final int PIE_ENABLED = 1;
 
-    // Recents clear all
-    private static final int HIDE_ALTERNATIVE_RECENTS_CLEAR_ALL = 0;
-    private static final int SHOW_ALTERNATIVE_RECENTS_CLEAR_ALL = 1;
-
     /**
      * These are the system UI flags that, when changing, can cause the layout
      * of the screen to change.
@@ -1074,6 +1070,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     };
 
+    private Context getUiContext() {
+        if (mUiContext == null) {
+            mUiContext = ThemeUtils.createUiContext(mContext);
+        }
+        return mUiContext != null ? mUiContext : mContext;
+    }
+
     Runnable mBackLongPress = new Runnable() {
         public void run() {
             if (DevUtils.killForegroundApplication(mContext)) {
@@ -1203,15 +1206,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public void init(Context context, IWindowManager windowManager,
             WindowManagerFuncs windowManagerFuncs) {
         mContext = context;
-        mUiContext = ThemeUtils.createUiContext(context);
-        ThemeUtils.registerThemeChangeReceiver(context, new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mUiContext = ThemeUtils.createUiContext(mContext);
-            }
-        });
-
-
         mWindowManager = windowManager;
         mWindowManagerFuncs = windowManagerFuncs;
         mHeadless = "1".equals(SystemProperties.get("ro.config.headless", "0"));
@@ -1375,6 +1369,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         mPowerMenuReceiver = new PowerMenuReceiver(context);
         mPowerMenuReceiver.registerSelf();
+
+        ThemeUtils.registerThemeChangeReceiver(context, new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                mUiContext = null;
+            }
+        });
     }
 
     private void updateKeyAssignments() {
