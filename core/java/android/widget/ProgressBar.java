@@ -299,7 +299,7 @@ public class ProgressBar extends View {
                 .colors(getResources().getIntArray(R.array.pgcolors))
                 .speed((float)0.2)
                 .sectionsCount(6)
-                .mirrorMode(true)
+                .mirrorMode(false)
                 .build());
 	}
         if (drawable != null) {
