@@ -21,6 +21,6 @@
         android:key="advancedDevices" />
     <CheckBoxPreference
         android:title="@string/pref_file_size"
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="fileSize" />
 </PreferenceScreen>
