@@ -6062,6 +6062,12 @@ public final class Settings {
                 "default_theme_applied_on_first_boot";
 
         /**
+         * Protected Components
+         * @hide
+         */
+        public static final String PROTECTED_COMPONENTS = "protected_components";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
