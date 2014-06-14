@@ -1055,6 +1055,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
                 mMSimNetworkController.addSignalCluster(mMSimSignalClusterView, i);
             }
             mMSimSignalClusterView.setNetworkController(mMSimNetworkController);
+        }
 
         final boolean isAPhone = mNetworkController.hasVoiceCallingFeature();
         if (isAPhone) {
