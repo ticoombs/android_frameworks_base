@@ -102,6 +102,9 @@ public class RecentsActivity extends Activity {
                 R.anim.recents_return_to_launcher_enter,
                 R.anim.recents_return_to_launcher_exit);
         mForeground = false;
+        if (mRecentsPanel != null) {
+            mRecentsPanel.dismissContextMenuIfAny();
+        }
         super.onPause();
     }
 
@@ -191,7 +194,6 @@ public class RecentsActivity extends Activity {
                     | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
             startActivityAsUser(homeIntent, new UserHandle(UserHandle.USER_CURRENT));
             mRecentsPanel.show(false);
-            RecentTasksLoader.getInstance(this).cancelPreloadingFirstTask();
         }
     }
 

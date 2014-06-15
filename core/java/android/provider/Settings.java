@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
- * This code has been modified. Portions copyright (C) 2013, ParanoidAndroid Project.
+ * This code has been modified. Portions copyright (C) 2014, ParanoidAndroid Project.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2684,12 +2684,6 @@ public final class Settings {
         public static final String LOCKSCREEN_MAXIMIZE_WIDGETS = "lockscreen_maximize_widgets";
 
         /**
-         * Whether a custom lockscreen wallpaper is enabled
-         * @hide
-         */
-        public static final String LOCKSCREEN_WALLPAPER = "lockscreen_wallpaper";
-
-        /**
          * Whether to use the carousel as widget container on portrait view
          * @hide
          */
@@ -2764,83 +2758,6 @@ public final class Settings {
          * @hide
          */
         public static final String HEADSET_PLUG_MUSIC_ACTIVE = "headset_plug_music_active";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR interpolator
-	* @hide
-	*/
-        public static final String PROGRESSBAR_INTERPOLATOR = "progressbar_interpolator";
-
-	/**
-	*
-	* SMOOTH PROGRESS BAR Mirror
-	* @hide
-	*/
-        public static final String PROGRESSBAR_MIRROR = "progressbar_mirror";
-
-	/**
-	*
-	* SMOOTH PROGRESS BAR Reverse
-	* @hide
-	*/
-        public static final String PROGRESSBAR_REVERSE = "progressbar_reverse";
-
-	/**
-	*
-	* SMOOTH PROGRESS BAR Speed
-	* @hide
-	*/
-        public static final String PROGRESSBAR_SPEED = "progressbar_speed";
-
-       /**
-	*
-	* SMOOTH PROGRESS BAR Width
-	* @hide
-	*/
-        public static final String PROGRESSBAR_WIDTH = "progressbar_width";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR Length
-	* @hide
-	*/
-        public static final String PROGRESSBAR_LENGTH = "progressbar_length";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR Count
-	* @hide
-	*/
-        public static final String PROGRESSBAR_COUNT = "progressbar_count";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR Color_1
-	* @hide
-	*/
-        public static final String PROGRESSBAR_COLOR_1 = "progressbar_color_1";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR Color_2
-	* @hide
-	*/
-        public static final String PROGRESSBAR_COLOR_2 = "progressbar_color_2";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR Color_3
-	* @hide
-	*/
-        public static final String PROGRESSBAR_COLOR_3 = "progressbar_color_3";
-
-        /**
-	*
-	* SMOOTH PROGRESS BAR Color_4
-	* @hide
-	*/
-        public static final String PROGRESSBAR_COLOR_4 = "progressbar_color_4";
 
         /**
          * Whether to display the gesture anywhere trigger region or not.
@@ -2971,19 +2888,6 @@ public final class Settings {
          * @hide
          */
         public static final String EGG_MODE = "egg_mode";
-
-        /**
-         * Show the content behind the lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_SEE_THROUGH = "lockscreen_see_through";
-
-        /**
-         * Allows blurring the lockscreen background
-         * @hide
-         */
-        public static final String LOCKSCREEN_BLUR_BEHIND = "lockscreen_blur_behind";
-        public static final String LOCKSCREEN_BLUR_RADIUS = "lockscreen_blur_radius";
 
         /**
          * Enables/disables lockscreen notifications
@@ -3161,6 +3065,12 @@ public final class Settings {
          * @hide
          */
         public static final String STATUS_BAR_NETWORK_HIDE = "status_bar_network_hide";
+
+        /**
+         * Show the pending notification counts as overlays on the status bar
+         * @hide
+         */
+        public static final String STATUS_BAR_NOTIFICATION_COUNT = "status_bar_notification_count";
 
         /**
          * Whether to wake the screen with the volume keys, the value is boolean.
@@ -3664,22 +3574,13 @@ public final class Settings {
 
         /**
          * Pie control panel. Meet him on the spot.
+         * State (full/lite) based on immersive mode.
          * 0 = off
          * 1 = on
          * Changes aspect depends on status bar visibility.
          * @hide
          */
         public static final String PIE_STATE = "pie_state";
-
-        /**
-         * Used by Phone Window Manager to tell PIE which mode to use
-         * depending on whether nav/statusbar is hidden
-         * 0 = off
-         * 1 = simple
-         * 2 = full
-         * @hide
-         */
-        public static final String PIE_MODE = "pie_mode";
 
         /**
          * Location of the pie in the screen
@@ -3689,6 +3590,71 @@ public final class Settings {
          * @hide
          */
         public static final String PIE_GRAVITY = "pie_gravity";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_SNAP_BACKGROUND_COLOR = "pie_snap_background_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_BACKGROUND_COLOR = "pie_background_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_SELECT_COLOR = "pie_select_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_OUTLINES_COLOR = "pie_outlines_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_CHEVRON_COLOR = "pie_chevron_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_STATUS_COLOR = "pie_status_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_BATTERY_BACKGROUND_COLOR = "pie_battery_background_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_BATTERY_JUICE_COLOR = "pie_battery_juice_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_BATTERY_JUICE_LOW_COLOR = "pie_battery_juice_low_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_BATTERY_JUICE_CRITICAL_COLOR = "pie_battery_juice_critical_color";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_ANGLE = "pie_angle";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_GAP = "pie_gap";
+
+        /**
+         * @hide
+         */
+        public static final String PIE_SIZE = "pie_size";
 
         /**
          * Either if notification peek is enabled of disabled
@@ -3712,6 +3678,28 @@ public final class Settings {
          * @hide
          */
         public static final String DIALPAD_STATE = "dialpad_state";
+
+
+        /**
+         * Use EdgeGesture Service for system gestures in PhoneWindowManager
+         * @hide
+         */
+        public static final String USE_EDGE_SERVICE_FOR_GESTURES = "edge_service_for_gestures";
+
+        /**
+         * Whether phone vibrates when outgoing call is picked up
+         *
+         * @hide
+         */
+        public static final String VIBRATE_ON_OUTGOING_PICKUP = "vibrate_on_outgoing_pickup";
+
+        /**
+         * Hover, default is 0 (off).
+         * 0 = disabled
+         * 1 = enabled
+         * @hide
+         */
+        public static final String HOVER_STATE = "hover_state";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -4128,7 +4116,6 @@ public final class Settings {
             MOVED_TO_GLOBAL.add(Settings.Global.USE_GOOGLE_MAIL);
             MOVED_TO_GLOBAL.add(Settings.Global.WEB_AUTOFILL_QUERY_URL);
             MOVED_TO_GLOBAL.add(Settings.Global.WIFI_COUNTRY_CODE);
-            MOVED_TO_GLOBAL.add(Settings.Global.WIFI_COUNTRY_CODE_USER);
             MOVED_TO_GLOBAL.add(Settings.Global.WIFI_FRAMEWORK_SCAN_INTERVAL_MS);
             MOVED_TO_GLOBAL.add(Settings.Global.WIFI_FREQUENCY_BAND);
             MOVED_TO_GLOBAL.add(Settings.Global.WIFI_IDLE_MS);
@@ -5792,6 +5779,9 @@ public final class Settings {
         /** @hide */
         public static final String IMMERSIVE_MODE_CONFIRMATIONS = "immersive_mode_confirmations";
 
+        /** @hide */
+        public static final String HOVER_FIRST_TIME = "hover_first_time";
+
         /**
          * This is the query URI for finding a print service to install.
          *
@@ -5805,6 +5795,31 @@ public final class Settings {
          * @hide
          */
         public static final String PAYMENT_SERVICE_SEARCH_URI = "payment_service_search_uri";
+
+        /**
+         * Default theme to use.  If empty, use holo.
+         * @hide
+         */
+        public static final String DEFAULT_THEME_PACKAGE = "default_theme_package";
+
+        /**
+         * A '|' delimited list of theme components to apply from the default theme on first boot.
+         * Components can be one or more of the "mods_XXXXXXX" found in
+         * {@link ThemesContract$ThemesColumns}.  Leaving this field blank assumes all components
+         * will be applied.
+         *
+         * ex: mods_icons|mods_overlays|mods_homescreen
+         *
+         * @hide
+         */
+        public static final String DEFAULT_THEME_COMPONENTS = "default_theme_components";
+
+        /**
+         * Whether the default theme was applied on the first boot.
+         * @hide
+         */
+        public static final String DEFAULT_THEME_APPLIED_ON_FIRST_BOOT =
+                "default_theme_applied_on_first_boot";
 
         /**
          * This are the settings to be backed up.
@@ -6558,6 +6573,12 @@ public final class Settings {
         public static final String SMS_SHORT_CODE_RULE = "sms_short_code_rule";
 
        /**
+        * Used to select TCP's default initial receiver window size in segments - defaults to a build config value
+        * @hide
+        */
+       public static final String TCP_DEFAULT_INIT_RWND = "tcp_default_init_rwnd";
+
+       /**
         * Used to disable Tethering on a device - defaults to true
         * @hide
         */
@@ -6656,12 +6677,6 @@ public final class Settings {
         * @hide
         */
        public static final String WIFI_COUNTRY_CODE = "wifi_country_code";
-
-        /**
-         * 802.11 country code in ISO 3166 format custom user value
-         * @hide
-         */
-        public static final String WIFI_COUNTRY_CODE_USER = "wifi_country_code_user";
 
        /**
         * The interval in milliseconds to issue wake up scans when wifi needs

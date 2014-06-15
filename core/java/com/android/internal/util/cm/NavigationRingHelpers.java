@@ -34,7 +34,7 @@ import android.provider.Settings;
 import android.text.TextUtils;
 
 import static com.android.internal.util.cm.NavigationRingConstants.*;
-import com.android.internal.util.cm.TorchConstants;
+import com.android.internal.util.paranoid.LightbulbConstants;
 import com.android.internal.widget.multiwaveview.GlowPadView;
 import com.android.internal.widget.multiwaveview.TargetDrawable;
 
@@ -45,8 +45,8 @@ public class NavigationRingHelpers {
 
     private static final String ASSIST_ICON_METADATA_NAME = "com.android.systemui.action_assist_icon";
 
-    private static final IntentFilter TORCH_STATE_FILTER =
-            new IntentFilter(TorchConstants.ACTION_STATE_CHANGED);
+    private static final IntentFilter LIGHTBULB_STATE_FILTER =
+            new IntentFilter(LightbulbConstants.ACTION_STATE_CHANGED);
 
     private NavigationRingHelpers() {
     }
@@ -68,7 +68,7 @@ public class NavigationRingHelpers {
         }
 
         filterAction(result, ACTION_ASSIST, isAssistantAvailable(context));
-        filterAction(result, ACTION_TORCH, isTorchAvailable(context));
+        filterAction(result, ACTION_LIGHTBULB, isLightbulbAvailable(context));
 
         return result;
     }
@@ -96,10 +96,10 @@ public class NavigationRingHelpers {
                 .getAssistIntent(context, true, UserHandle.USER_CURRENT) != null;
     }
 
-    public static boolean isTorchAvailable(Context context) {
+    public static boolean isLightbulbAvailable(Context context) {
         PackageManager pm = context.getPackageManager();
         try {
-            return pm.getPackageInfo(TorchConstants.APP_PACKAGE_NAME, 0) != null;
+            return pm.getPackageInfo(LightbulbConstants.APP_PACKAGE_NAME, 0) != null;
         } catch (PackageManager.NameNotFoundException e) {
             // ignored, just catched so we can return false below
         }
@@ -128,8 +128,8 @@ public class NavigationRingHelpers {
             resourceId = com.android.internal.R.drawable.ic_navigation_ring_lastapp;
         } else if (action.equals(ACTION_POWER)) {
             resourceId = com.android.internal.R.drawable.ic_navigation_ring_power;
-        } else if (action.equals(ACTION_TORCH)) {
-            resourceId = getTorchDrawableResId(context);
+        } else if (action.equals(ACTION_LIGHTBULB)) {
+            resourceId = getLightbulbDrawableResId(context);
         } else if (action.equals(ACTION_ASSIST)) {
             resourceId = com.android.internal.R.drawable.ic_action_assist_generic;
         }
@@ -210,10 +210,10 @@ public class NavigationRingHelpers {
         }
     }
 
-    private static int getTorchDrawableResId(Context context) {
-        Intent stateIntent = context.registerReceiver(null, TORCH_STATE_FILTER);
+    private static int getLightbulbDrawableResId(Context context) {
+        Intent stateIntent = context.registerReceiver(null, LIGHTBULB_STATE_FILTER);
         boolean active = stateIntent != null
-                && stateIntent.getIntExtra(TorchConstants.EXTRA_CURRENT_STATE, 0) != 0;
+                && stateIntent.getIntExtra(LightbulbConstants.EXTRA_CURRENT_STATE, 0) != 0;
 
         if (active) {
             return com.android.internal.R.drawable.ic_navigation_ring_torch_on;
@@ -231,8 +231,8 @@ public class NavigationRingHelpers {
             resourceId = getSilentDrawableResId(context);
         } else if (TextUtils.equals(action, ACTION_RING_SILENT_VIBRATE)) {
             resourceId = getRingerDrawableResId(context);
-        } else if (TextUtils.equals(action, ACTION_TORCH)) {
-            resourceId = getTorchDrawableResId(context);
+        } else if (TextUtils.equals(action, ACTION_LIGHTBULB)) {
+            resourceId = getLightbulbDrawableResId(context);
         }
 
         if (resourceId > 0) {
@@ -247,9 +247,37 @@ public class NavigationRingHelpers {
         if (intent != null) {
             ComponentName component = intent.getComponent();
             if (component != null) {
-                view.replaceTargetDrawablesIfPresent(component,
+                boolean replaced = view.replaceTargetDrawablesIfPresent(component,
                         ASSIST_ICON_METADATA_NAME,
                         com.android.internal.R.drawable.ic_action_assist_generic);
+                if (replaced) {
+                    addFocusedStateToSearchIconIfMissing(context, view);
+                }
+            }
+        }
+    }
+
+    private static void addFocusedStateToSearchIconIfMissing(Context context, GlowPadView view) {
+        for (TargetDrawable target : view.getTargetDrawables()) {
+            if (target != null && target.getResourceId() ==
+                    com.android.internal.R.drawable.ic_action_assist_generic) {
+                Drawable drawable = target.getDrawable();
+                if (drawable instanceof StateListDrawable) {
+                    StateListDrawable d = (StateListDrawable) drawable;
+                    int inActiveIndex = d.getStateDrawableIndex(TargetDrawable.STATE_INACTIVE);
+                    int activeIndex = d.getStateDrawableIndex(TargetDrawable.STATE_ACTIVE);
+                    if (inActiveIndex != -1 && activeIndex != -1) {
+                        StateListDrawable selector = new StateListDrawable();
+                        selector.addState(TargetDrawable.STATE_INACTIVE,
+                                d.getStateDrawable(inActiveIndex));
+                        selector.addState(TargetDrawable.STATE_ACTIVE,
+                                d.getStateDrawable(activeIndex));
+                        selector.addState(TargetDrawable.STATE_FOCUSED,
+                                d.getStateDrawable(activeIndex));
+                        target.setDrawable(selector);
+                    }
+                }
+                break;
             }
         }
     }

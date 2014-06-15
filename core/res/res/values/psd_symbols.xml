@@ -119,7 +119,6 @@
   <java-symbol type="string" name="description_target_unlock" />
 
   <!-- Others -->
-  <java-symbol type="string" name="progress_nomediapresent" />
   <java-symbol type="drawable" name="ic_lock_screen_record" />
   <java-symbol type="string" name="global_action_screen_record" />
   <java-symbol type="bool" name="config_enableAdbByDefault" />
@@ -128,4 +127,6 @@
   <java-symbol type="bool" name="config_show_cmIMESwitcher"/>
   <java-symbol type="bool" name="config_hasRotationLockSwitch" />
   <java-symbol type="integer" name="config_wallpaperMaxWidth" />
+  <java-symbol type="drawable" name="aospal_logo" />
+  
 </resources>
