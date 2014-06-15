@@ -489,7 +489,7 @@ public class AudioService extends IAudioService.Stub {
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         mHasVibrator = vibrator == null ? false : vibrator.hasVibrator();
 
-       // Intialized volume
+        // Intialized volume
         MAX_STREAM_VOLUME[AudioSystem.STREAM_VOICE_CALL] = SystemProperties.getInt(
             "ro.config.vc_call_vol_steps",
            MAX_STREAM_VOLUME[AudioSystem.STREAM_VOICE_CALL]);
@@ -497,7 +497,7 @@ public class AudioService extends IAudioService.Stub {
         sSoundEffectVolumeDb = context.getResources().getInteger(
                 com.android.internal.R.integer.config_soundEffectVolumeDb);
 
-        mVolumePanel = new VolumePanel(context, this);
+        mVolumePanel = new VolumePanel(context, null, this); // first created panel
         mForcedUseForComm = AudioSystem.FORCE_NONE;
 
         createAudioSystemThread();
@@ -4425,7 +4425,7 @@ public class AudioService extends IAudioService.Stub {
                     }
 
                     final Context context = mUiContext != null ? mUiContext : mContext;
-                    mVolumePanel = new VolumePanel(context, AudioService.this);
+                    mVolumePanel = new VolumePanel(context, mContext, AudioService.this);
                     mVolumePanel.postMasterVolumeChanged(flags);
                 }
             });
@@ -4444,7 +4444,7 @@ public class AudioService extends IAudioService.Stub {
                     }
 
                     final Context context = mUiContext != null ? mUiContext : mContext;
-                    mVolumePanel = new VolumePanel(context, AudioService.this);
+                    mVolumePanel = new VolumePanel(context, mContext, AudioService.this);
                     mVolumePanel.postMasterMuteChanged(flags);
                 }
             });
@@ -4463,7 +4463,7 @@ public class AudioService extends IAudioService.Stub {
                     }
 
                     final Context context = mUiContext != null ? mUiContext : mContext;
-                    mVolumePanel = new VolumePanel(context, AudioService.this);
+                    mVolumePanel = new VolumePanel(context, mContext, AudioService.this);
                     mVolumePanel.postVolumeChanged(streamType, flags);
                 }
             });
@@ -4482,7 +4482,7 @@ public class AudioService extends IAudioService.Stub {
                     }
 
                     final Context context = mUiContext != null ? mUiContext : mContext;
-                    mVolumePanel = new VolumePanel(context, AudioService.this);
+                    mVolumePanel = new VolumePanel(context, mContext, AudioService.this);
                     mVolumePanel.postDisplaySafeVolumeWarning(flags);
                 }
             });
