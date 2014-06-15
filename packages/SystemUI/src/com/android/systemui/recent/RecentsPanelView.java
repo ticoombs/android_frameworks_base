@@ -23,6 +23,7 @@ import android.animation.TimeInterpolator;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.ActivityOptions;
+import android.app.INotificationManager;
 import android.app.TaskStackBuilder;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
@@ -41,6 +42,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
@@ -66,6 +68,7 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.BaseStatusBar;
@@ -119,6 +122,7 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
     MemInfoReader mMemInfoReader = new MemInfoReader();
 
     private RecentsActivity mRecentsActivity;
+    private INotificationManager mNotificationManager;
 
     public static interface RecentsScrollView {
         public int numItemsInOneScreenful();
@@ -317,6 +321,11 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
         return pointInside(x, y, (View) mRecentsContainer);
     }
 
+    public void dismissContextMenuIfAny() {
+        if(mPopup != null) {
+            mPopup.dismiss();
+        }
+    }
     public void show(boolean show) {
         show(show, null, false, false);
     }
@@ -817,13 +826,18 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
             return;
         }
         if (DEBUG) Log.v(TAG, "Jettison " + ad.getLabel());
-        mRecentTaskDescriptions.remove(ad);
-        mRecentTasksLoader.remove(ad);
 
-        // Handled by widget containers to enable LayoutTransitions properly
-        // mListAdapter.notifyDataSetChanged();
+        if (mRecentTaskDescriptions != null) {
+            mRecentTaskDescriptions.remove(ad);
+            mRecentTasksLoader.remove(ad);
 
-        if (mRecentTaskDescriptions.size() == 0) {
+            // Handled by widget containers to enable LayoutTransitions properly
+            // mListAdapter.notifyDataSetChanged();
+
+            if (mRecentTaskDescriptions.size() == 0) {
+                dismissAndGoBack();
+            }
+        } else {
             dismissAndGoBack();
         }
 
@@ -863,9 +877,17 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
 
     public void handleLongPress(
             final View selectedView, final View anchorView, final View thumbnailView) {
+        if(mPopup != null) {
+            mPopup.dismiss();
+        }
         thumbnailView.setSelected(true);
         final PopupMenu popup =
             new PopupMenu(mContext, anchorView == null ? selectedView : anchorView);
+        // initialize if null
+        if (mNotificationManager == null) {
+            mNotificationManager = INotificationManager.Stub.asInterface(
+                    ServiceManager.getService(Context.NOTIFICATION_SERVICE));
+        }
         mPopup = popup;
         popup.getMenuInflater().inflate(R.menu.recent_popup_menu, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -885,7 +907,23 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
                     ViewHolder viewHolder = (ViewHolder) selectedView.getTag();
                     if (viewHolder != null) {
                         final TaskDescription ad = viewHolder.taskDescription;
-                        dismissAndGoBack();
+                        String currentViewPackage = ad.packageName;
+                        boolean allowed = true; // default on
+                        try {
+                            // preloaded apps are added to the blacklist array when is recreated, handled in the notification manager
+                            allowed = mNotificationManager.isPackageAllowedForFloatingMode(currentViewPackage);
+                        } catch (android.os.RemoteException ex) {
+                            // System is dead
+                        }
+                        if (!allowed) {
+                            dismissAndGoBack();
+                            String text = mContext.getResources().getString(R.string.floating_mode_blacklisted_app);
+                            int duration = Toast.LENGTH_LONG;
+                            Toast.makeText(mContext, text, duration).show();
+                            return true;
+                        } else {
+                            dismissAndGoBack();
+                        }
                         selectedView.post(new Runnable() {
                             @Override
                             public void run() {
