@@ -3062,14 +3062,28 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
 
     @Override
     public void animateStatusBarOut() {
-        mStatusBarView.setVisibility(View.GONE);
-        mStatusBarView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
+        mHandler.post(new Runnable() {
+            public void run() {
+                // ensure to not overload
+                if (mStatusBarView.getVisibility() == View.VISIBLE) {
+                    mStatusBarView.setVisibility(View.GONE);
+                    mStatusBarView.startAnimation(loadAnim(com.android.internal.R.anim.push_up_out, null));
+                }
+            }
+        });
     }
 
     @Override
     public void animateStatusBarIn() {
-        mStatusBarView.setVisibility(View.VISIBLE);
-        mStatusBarView.startAnimation(loadAnim(com.android.internal.R.anim.push_down_in, null));
+        mHandler.post(new Runnable() {
+            public void run() {
+                // ensure to not overload
+                if (mStatusBarView.getVisibility() == View.GONE) {
+                    mStatusBarView.setVisibility(View.VISIBLE);
+                    mStatusBarView.startAnimation(loadAnim(com.android.internal.R.anim.push_down_in, null));
+                }
+            }
+        });
     }
 
     private class MyTicker extends Ticker {
@@ -3917,7 +3931,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         }
 
         mHeadsUpNotificationDecay = res.getInteger(R.integer.heads_up_notification_decay);
-        mRowHeight =  res.getDimensionPixelSize(R.dimen.notification_row_min_height);
+        mRowHeight =  res.getDimensionPixelSize(R.dimen.default_notification_row_min_height);
 
         if (false) Log.v(TAG, "updateResources");
     }

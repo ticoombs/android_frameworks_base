@@ -193,6 +193,12 @@ public class PieHelper {
         return intent;
     }
 
+    public boolean isAssistantAvailable() {
+        Intent intent = ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
+                .getAssistIntent(mContext, true, UserHandle.USER_CURRENT);
+        return intent != null;
+    }
+
     public void launchAssistAction() {
         Intent intent = getAssistIntent();
         if(intent != null) {
