@@ -1854,15 +1854,13 @@
   <!-- SMS RIL_REQUEST_SEND_SMS_EXPECT_MORE -->
   <java-symbol type="bool" name="config_smsUseExpectMore" />
 
-  <java-symbol type="integer" name="config_wallpaperMaxWidth" />
+  <!-- WiFi turn off notification -->
+  <java-symbol type="string" name="notify_turn_wifi_off_title" />
 
   <!-- Package Manager -->
   <java-symbol type="array" name="config_disabledComponents" />
 
   <!-- Label for the Android system components when they are shown to the user. -->
   <java-symbol type="string" name="android_system_label" />
-
-  <!-- Config.xml entries -->
-  <java-symbol type="integer" name="config_wallpaperMaxWidth" />
 
 </resources>

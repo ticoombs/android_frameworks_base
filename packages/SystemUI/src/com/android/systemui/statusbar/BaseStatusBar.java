@@ -561,11 +561,31 @@ public abstract class BaseStatusBar extends SystemUI implements
     }
 
     protected void updateClearAllRecents(boolean navBarHidden, boolean pieEnabled) {
-        // use alternative clear all view/button?
-        Settings.System.putInt(mContext.getContentResolver(),
-                Settings.System.ALTERNATIVE_RECENTS_CLEAR_ALL,
-                        navBarHidden && pieEnabled ? SHOW_ALTERNATIVE_RECENTS_CLEAR_ALL
-                            : HIDE_ALTERNATIVE_RECENTS_CLEAR_ALL);
+
+        // check if navbar is force shown
+        boolean forceNavbar = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.DEV_FORCE_SHOW_NAVBAR, 0) == 1;
+        // check if device has hardware keys
+        boolean hasKeys = false;
+        try {
+            IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
+            hasKeys = !wm.needsNavigationBar();
+        } catch (RemoteException e) {
+        }
+
+        if (!hasKeys) {
+            // use alternative clear all view/button?
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.ALTERNATIVE_RECENTS_CLEAR_ALL,
+                            navBarHidden && pieEnabled ? SHOW_ALTERNATIVE_RECENTS_CLEAR_ALL
+                                : HIDE_ALTERNATIVE_RECENTS_CLEAR_ALL);
+        } else {
+            // use alternative clear all view/button?
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.ALTERNATIVE_RECENTS_CLEAR_ALL,
+                            !forceNavbar ? SHOW_ALTERNATIVE_RECENTS_CLEAR_ALL
+                                : HIDE_ALTERNATIVE_RECENTS_CLEAR_ALL);
+        }
     }
 
     protected void updateHoverState() {
@@ -1041,9 +1061,9 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     public boolean inflateViews(NotificationData.Entry entry, ViewGroup parent) {
         int minHeight =
-                mContext.getResources().getDimensionPixelSize(R.dimen.notification_min_height);
+                mContext.getResources().getDimensionPixelSize(R.dimen.default_notification_min_height);
         int maxHeight =
-                mContext.getResources().getDimensionPixelSize(R.dimen.notification_max_height);
+                mContext.getResources().getDimensionPixelSize(R.dimen.default_notification_max_height);
         StatusBarNotification sbn = entry.notification;
         RemoteViews contentView = sbn.getNotification().contentView;
         RemoteViews bigContentView = sbn.getNotification().bigContentView;
