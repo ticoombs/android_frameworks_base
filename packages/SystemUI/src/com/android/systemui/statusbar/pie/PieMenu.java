@@ -191,6 +191,7 @@ public class PieMenu extends FrameLayout {
     private PieControlPanel mPanel;
 
     private boolean mHasShown;
+    private boolean mHasAssistant = false;
 
     private class SnapPoint {
         public boolean active;
