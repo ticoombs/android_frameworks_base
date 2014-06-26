@@ -118,6 +118,19 @@ public class PieMenu extends FrameLayout {
     private static final int ANGLE_BASE = 12;
     private static final float SIZE_BASE = 1.0f;
 
+    // colors
+    private int mBatteryBackgroundColor;
+    private int mBatteryJuiceBackgroundColor;
+    private int mBatteryJuiceCriticalBackgroundColor;
+    private int mBatteryJuiceLowBackgroundColor;
+    private int mChevronBackgroundColor;
+    private int mMenuBackgroundColor;
+    private int mOutlinesBackgroundColor;
+    private int mSnapBackgroundColor;
+    private int mStatusBackgroundColor;
+    private int mSelectBackgroundColor;
+
+    // structure
     private int mPanelDegree;
     private int mPanelOrientation;
     private int mInnerPieRadius;
@@ -144,24 +157,14 @@ public class PieMenu extends FrameLayout {
     private Path mBatteryPathBackground;
     private Path mBatteryPathJuice;
 
-    private Paint mPieBackground = new Paint();
-    private Paint mPieSelected = new Paint();
-    private Paint mPieOutlines = new Paint();
-    private Paint mChevronBackground = new Paint();
-    private Paint mBatteryJuice = new Paint();
-    private Paint mBatteryBackground = new Paint();
-    private Paint mSnapBackground = new Paint();
-
-    private int mColorSnapBackground;
-    private int mColorPieBackground;
-    private int mColorPieSelect;
-    private int mColorPieOutlines;
-    private int mColorChevron;
-    private int mColorStatus;
-    private int mColorBatteryBackground;
-    private int mColorBatteryJuice;
-    private int mColorBatteryJuiceLow;
-    private int mColorBatteryJuiceCritical;
+    // paints
+    private Paint mPieBackground;
+    private Paint mPieSelected;
+    private Paint mPieOutlines;
+    private Paint mChevronBackground;
+    private Paint mBatteryJuice;
+    private Paint mBatteryBackground;
+    private Paint mSnapBackground;
 
     private Paint mClockPaint;
     private Paint mAmPmPaint;
@@ -206,6 +209,11 @@ public class PieMenu extends FrameLayout {
             radius = snapRadius;
             gravity = snapGravity;
             active = false;
+        }
+
+        /** @return whether the gravity of this snap point is usable under the current conditions */
+        public boolean isCurrentlyPossible() {
+            return mPanel.isGravityPossible(gravity, false);
         }
     }
 
@@ -257,26 +265,26 @@ public class PieMenu extends FrameLayout {
     private float mY = 0;
 
     private void updatePieColors() {
-        mColorSnapBackground = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_SNAP_BACKGROUND_COLOR, COLOR_SNAP_BACKGROUND));
-        mColorPieBackground = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_BACKGROUND_COLOR, COLOR_PIE_BACKGROUND));
-        mColorPieSelect = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_SELECT_COLOR, COLOR_PIE_SELECT));
-        mColorPieOutlines = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_OUTLINES_COLOR, COLOR_PIE_OUTLINES));
-        mColorChevron = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_CHEVRON_COLOR, COLOR_CHEVRON));
-        mColorStatus = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_STATUS_COLOR, COLOR_STATUS));
-        mColorBatteryBackground = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_BATTERY_BACKGROUND_COLOR, COLOR_BATTERY_BACKGROUND));
-        mColorBatteryJuice = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_BATTERY_JUICE_COLOR, COLOR_BATTERY_JUICE));
-        mColorBatteryJuiceLow = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_BATTERY_JUICE_LOW_COLOR, COLOR_BATTERY_JUICE_LOW));
-        mColorBatteryJuiceCritical = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_BATTERY_JUICE_CRITICAL_COLOR, COLOR_BATTERY_JUICE_CRITICAL));
+        mSnapBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_SNAP_BACKGROUND_COLOR, mResources.getColor(R.color.pie_snap_background)));
+        mMenuBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_BACKGROUND_COLOR, mResources.getColor(R.color.pie_menu_background)));
+        mSelectBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_SELECT_COLOR, mResources.getColor(R.color.pie_select_background)));
+        mOutlinesBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_OUTLINES_COLOR, mResources.getColor(R.color.pie_outlines_background)));
+        mChevronBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_CHEVRON_COLOR, mResources.getColor(R.color.pie_chevron_background)));
+        mStatusBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_STATUS_COLOR, mResources.getColor(R.color.pie_status_background)));
+        mBatteryBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_BATTERY_BACKGROUND_COLOR, mResources.getColor(R.color.pie_battery_background)));
+        mBatteryJuiceBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_BATTERY_JUICE_COLOR, mResources.getColor(R.color.pie_battery_juice_background)));
+        mBatteryJuiceLowBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_BATTERY_JUICE_LOW_COLOR, mResources.getColor(R.color.pie_battery_juice_low_background)));
+        mBatteryJuiceCriticalBackgroundColor = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.PIE_BATTERY_JUICE_CRITICAL_COLOR, mResources.getColor(R.color.pie_battery_juice_critical_background)));
     }
 
     private void updatePieSettings() {
@@ -289,6 +297,21 @@ public class PieMenu extends FrameLayout {
     }
 
     private void getDimensions() {
+        // fetch colors
+        updatePieColors();
+
+        /* mBatteryBackgroundColor = mResources.getColor(R.color.pie_battery_background);
+        mBatteryJuiceBackgroundColor = mResources.getColor(R.color.pie_battery_juice_background);
+        mBatteryJuiceCriticalBackgroundColor = mResources.getColor(R.color.pie_battery_juice_critical_background);
+        mBatteryJuiceLowBackgroundColor = mResources.getColor(R.color.pie_battery_juice_low_background);
+        mChevronBackgroundColor = mResources.getColor(R.color.pie_chevron_background);
+        mMenuBackgroundColor = mResources.getColor(R.color.pie_menu_background);
+        mOutlinesBackgroundColor = mResources.getColor(R.color.pie_outlines_background);
+        mSnapBackgroundColor = mResources.getColor(R.color.pie_snap_background);
+        mStatusBackgroundColor = mResources.getColor(R.color.pie_status_background);
+        mSelectBackgroundColor = mResources.getColor(R.color.pie_select_background); */
+
+        // fetch orientation
         mPanelDegree = mPanel.getDegree();
         mPanelOrientation = mPanel.getOrientation();
 
@@ -321,20 +344,17 @@ public class PieMenu extends FrameLayout {
         int mHeight = outSize.y;
 
         int snapIndex = 0;
-        if (mPanelOrientation != Gravity.LEFT &&
-            mPanel.isGravityPossible(Gravity.LEFT)) {
+        if (mPanelOrientation != Gravity.LEFT && mPanel.isGravityPossible(Gravity.LEFT, true)) {
             mSnapPoint[snapIndex ++] = new SnapPoint(
                     0 + mSnapThickness / 2, mHeight / 2, mSnapRadius, Gravity.LEFT);
         }
 
-        if (mPanelOrientation != Gravity.RIGHT &&
-            mPanel.isGravityPossible(Gravity.RIGHT)) {
+        if (mPanelOrientation != Gravity.RIGHT && mPanel.isGravityPossible(Gravity.RIGHT, true)) {
             mSnapPoint[snapIndex ++] = new SnapPoint(
                     mWidth - mSnapThickness / 2, mHeight / 2, mSnapRadius, Gravity.RIGHT);
         }
 
-        if (mPanelOrientation != Gravity.BOTTOM &&
-            mPanel.isGravityPossible(Gravity.BOTTOM)) {
+        if (mPanelOrientation != Gravity.BOTTOM && mPanel.isGravityPossible(Gravity.BOTTOM, true)) {
             mSnapPoint[snapIndex ++] = new SnapPoint(
                     mWidth / 2, mHeight - mSnapThickness / 2, mSnapRadius, Gravity.BOTTOM);
         }
@@ -390,18 +410,15 @@ public class PieMenu extends FrameLayout {
         mOuterBatteryRadius = (int) (mInnerBatteryRadius +
                 mResources.getDimensionPixelSize(R.dimen.pie_battery_increment) * mPieSize);
 
-        // Before that
-        updatePieColors();
-
-        mBatteryBackground.setColor(mColorBatteryBackground);
+        mBatteryBackground.setColor(mBatteryBackgroundColor);
         mBatteryLevel = mPieHelper.getBatteryLevel();
         if(mBatteryLevel <= PieHelper.LOW_BATTERY_LEVEL
                 && mBatteryLevel > PieHelper.CRITICAL_BATTERY_LEVEL) {
-            mBatteryJuice.setColor(mColorBatteryJuiceLow);
+            mBatteryJuice.setColor(mBatteryJuiceLowBackgroundColor);
         } else if(mBatteryLevel <= PieHelper.CRITICAL_BATTERY_LEVEL) {
-            mBatteryJuice.setColor(mColorBatteryJuiceCritical);
+            mBatteryJuice.setColor(mBatteryJuiceCriticalBackgroundColor);
         } else {
-            mBatteryJuice.setColor(mColorBatteryJuice);
+            mBatteryJuice.setColor(mBatteryJuiceBackgroundColor);
         }
 
         mStartBattery = mPanel.getDegree() + mEmptyAngle + mPieGap;
@@ -412,14 +429,14 @@ public class PieMenu extends FrameLayout {
                 mInnerBatteryRadius, mOuterBatteryRadius, mCenter);
 
         // Set custom colors
-        mSnapBackground.setColor(mColorSnapBackground);
-        mStatusPaint.setColor(mColorStatus);
-        mPieBackground.setColor(mColorPieBackground);
-        mPieSelected.setColor(mColorPieSelect);
-        mPieOutlines.setColor(mColorPieOutlines);
-        mClockPaint.setColor(mColorStatus);
-        mAmPmPaint.setColor(mColorStatus);
-        mChevronBackground.setColor(mColorChevron);
+        mSnapBackground.setColor(mSnapBackgroundColor);
+        mStatusPaint.setColor(mStatusBackgroundColor);
+        mPieBackground.setColor(mMenuBackgroundColor);
+        mPieSelected.setColor(mSelectBackgroundColor);
+        mPieOutlines.setColor(mOutlinesBackgroundColor);
+        mClockPaint.setColor(mStatusBackgroundColor);
+        mAmPmPaint.setColor(mStatusBackgroundColor);
+        mChevronBackground.setColor(ChevronBackgroundColor);
 
         mBatteryJuice.setColorFilter(null);
 
@@ -464,7 +481,7 @@ public class PieMenu extends FrameLayout {
                 if (mAnimators[ANIMATOR_SNAP_GROW].fraction == 1) {
                     for (int i = 0; i < 2; i++) {
                         SnapPoint snap = mSnapPoint[i];
-                        if (snap != null && snap.active) {
+                        if (snap != null && snap.active && snap.isCurrentlyPossible()) {
                             if(mHapticFeedback) mVibrator.vibrate(2);
                             deselect();
                             animateOut();
@@ -515,6 +532,15 @@ public class PieMenu extends FrameLayout {
 
         mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mPieHelper = PieHelper.getInstance();
+
+        // initialize main paints
+        mPieBackground = new Paint();
+        mPieSelected = new Paint();
+        mPieOutlines = new Paint();
+        mChevronBackground = new Paint();
+        mBatteryJuice = new Paint();
+        mBatteryBackground = new Paint();
+        mSnapBackground = new Paint();
 
         // initialize classes
         mItems = new ArrayList<PieItem>();
@@ -725,6 +751,7 @@ public class PieMenu extends FrameLayout {
             if (mCenterDistance > threshold) {
                 for (int i = 0; i < mNumberOfSnapPoints; i++) {
                     SnapPoint snap = mSnapPoint[i];
+                    if (!snap.isCurrentlyPossible()) continue;
 
                     if (snap == null) continue;
 
@@ -897,6 +924,7 @@ public class PieMenu extends FrameLayout {
         } else if (MotionEvent.ACTION_MOVE == action) {
             for (int i = 0; i < mNumberOfSnapPoints; i++) {
                 SnapPoint snap = mSnapPoint[i];
+                if (!snap.isCurrentlyPossible()) continue;
 
                 if (snap == null) continue;
 
