@@ -1290,6 +1290,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
         mCircleBattery = (BatteryCircleMeterView) mStatusBarView.findViewById(R.id.circle_battery);
         mCircleBattery.setColors(false);
 
+        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+            mMSimNetworkController.setListener(this);
+        } else {
+            mNetworkController.setListener(this);
+        }
+
         return mStatusBarView;
     }
 
