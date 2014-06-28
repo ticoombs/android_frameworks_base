@@ -2568,18 +2568,6 @@ public class NotificationManagerService extends INotificationManager.Stub
             enableLed = true;
         }
 
-        // Don't flash while we are in a call or screen is on
-        final boolean enableLed;
-        if (mLedNotification == null) {
-            enableLed = false;
-        } else if (isLedNotificationForcedOn(mLedNotification)) {
-            enableLed = true;
-        } else if (mInCall || (mScreenOn && !mDreaming)) {
-            enableLed = false;
-        } else {
-            enableLed = true;
-        }
-
         if (!enableLed) {
             mNotificationLight.turnOff();
         } else if (mNotificationPulseEnabled) {
