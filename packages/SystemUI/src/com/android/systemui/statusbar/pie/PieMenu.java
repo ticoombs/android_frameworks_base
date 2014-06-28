@@ -436,7 +436,7 @@ public class PieMenu extends FrameLayout {
         mPieOutlines.setColor(mOutlinesBackgroundColor);
         mClockPaint.setColor(mStatusBackgroundColor);
         mAmPmPaint.setColor(mStatusBackgroundColor);
-        mChevronBackground.setColor(ChevronBackgroundColor);
+        mChevronBackground.setColor(mChevronBackgroundColor);
 
         mBatteryJuice.setColorFilter(null);
 
