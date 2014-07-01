@@ -105,6 +105,8 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
             mRecentIcon, mRecentLandIcon, mRecentAltIcon, mRecentAltLandIcon,
             mHomeIcon, mHomeLandIcon;
 
+    boolean mWasNotifsButtonVisible = false;
+
     private DelegateViewHelper mDelegateHelper;
     private DeadZone mDeadZone;
     private final NavigationBarTransitions mBarTransitions;
@@ -533,6 +535,18 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
     @Override
     public int getNavigationIconHints() {
         return mNavigationIconHints;
+    }
+
+    public void setButtonDrawable(int buttonId, final int iconId) {
+        final ImageView iv = (ImageView)getNotifsButton();
+        mHandler.post(new Runnable() {
+            public void run() {
+                if (iconId == 1) iv.setImageResource(R.drawable.search_light_land);
+                else iv.setImageDrawable(mVertical ? mRecentAltLandIcon : mRecentAltIcon);
+                mWasNotifsButtonVisible = iconId != 0 && ((mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0);
+                setVisibleOrGone(getNotifsButton(), mWasNotifsButtonVisible);
+            }
+        });
     }
 
     public void setDisabledFlags(int disabledFlags) {

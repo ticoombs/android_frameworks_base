@@ -102,7 +102,6 @@ public class CommandQueue extends IStatusBar.Stub {
         public void cancelPreloadRecentApps();
         public void toggleOrientationListener(boolean enable);
         public void setWindowState(int window, int state);
-        public void setAutoRotate(boolean enabled);
         public void setButtonDrawable(int buttonId, int iconId);
     }
 
