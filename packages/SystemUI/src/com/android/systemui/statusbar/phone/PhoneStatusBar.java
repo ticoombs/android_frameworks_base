@@ -1798,6 +1798,13 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
     }
 
+   /**
+    * Listen for UI updates and refresh layout.
+    */
+    public void onUpdateUI() {
+        updateCarrierLabelVisibility(true);
+    }
+    
     protected void updateCarrierLabelVisibility(boolean force) {
         if (!mShowCarrierInPanel) return;
         // The idea here is to only show the carrier label when there is enough room to see it,
