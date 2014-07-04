@@ -1,0 +1,617 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..b25c15b
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1 @@
++*~
+diff --git a/core/java/android/app/ApplicationPackageManager.java b/core/java/android/app/ApplicationPackageManager.java
+index a8f0ea0..daa35e3 100644
+--- a/core/java/android/app/ApplicationPackageManager.java
++++ b/core/java/android/app/ApplicationPackageManager.java
+@@ -789,6 +789,28 @@ final class ApplicationPackageManager extends PackageManager {
+     }
+ 
+     /** @hide */
++    @Override
++    public Resources getResourcesForApplicationAsUser(String appPackageName, int userId)
++            throws NameNotFoundException {
++        if (userId < 0) {
++            throw new IllegalArgumentException(
++                    "Call does not support special user #" + userId);
++        }
++        if ("system".equals(appPackageName)) {
++            return mContext.mMainThread.getSystemContext().getResources();
++        }
++        try {
++            ApplicationInfo ai = mPM.getApplicationInfo(appPackageName, 0, userId);
++            if (ai != null) {
++                return getResourcesForApplication(ai);
++            }
++        } catch (RemoteException e) {
++            throw new RuntimeException("Package manager has died", e);
++        }
++        throw new NameNotFoundException("Package " + appPackageName + " doesn't exist");
++    }
++
++    /** @hide */
+     @Override public Resources getThemedResourcesForApplication(
+             ApplicationInfo app, String themePkgName) throws NameNotFoundException {
+         if (app.packageName.equals("system")) {
+@@ -813,19 +835,16 @@ final class ApplicationPackageManager extends PackageManager {
+ 
+     /** @hide */
+     @Override
+-    public Resources getResourcesForApplicationAsUser(String appPackageName, int userId)
+-            throws NameNotFoundException {
++    public Resources getThemedResourcesForApplicationAsUser(String appPackageName,
++            String themePackageName, int userId) throws NameNotFoundException {
+         if (userId < 0) {
+             throw new IllegalArgumentException(
+                     "Call does not support special user #" + userId);
+         }
+-        if ("system".equals(appPackageName)) {
+-            return mContext.mMainThread.getSystemContext().getResources();
+-        }
+         try {
+             ApplicationInfo ai = mPM.getApplicationInfo(appPackageName, 0, userId);
+             if (ai != null) {
+-                return getResourcesForApplication(ai);
++                return getThemedResourcesForApplication(ai, themePackageName);
+             }
+         } catch (RemoteException e) {
+             throw new RuntimeException("Package manager has died", e);
+diff --git a/core/java/android/app/ContextImpl.java b/core/java/android/app/ContextImpl.java
+index 4299172..a561f12 100644
+--- a/core/java/android/app/ContextImpl.java
++++ b/core/java/android/app/ContextImpl.java
+@@ -1906,24 +1906,30 @@ class ContextImpl extends Context {
+     @Override
+     public Context createPackageContext(String packageName, int flags)
+             throws NameNotFoundException {
+-        return createPackageContextAsUser(packageName, flags,
++        return createPackageContextAsUser(packageName, null, flags,
+                 mUser != null ? mUser : Process.myUserHandle());
+     }
+ 
+     @Override
+     public Context createPackageContextAsUser(String packageName, int flags, UserHandle user)
+             throws NameNotFoundException {
++        return createPackageContextAsUser(packageName, null, flags, user);
++    }
++
++    @Override
++    public Context createPackageContextAsUser(String packageName, String themePackageName,
++            int flags, UserHandle user) throws NameNotFoundException {
+         final boolean restricted = (flags & CONTEXT_RESTRICTED) == CONTEXT_RESTRICTED;
+         if (packageName.equals("system") || packageName.equals("android")) {
+             return new ContextImpl(this, mMainThread, mPackageInfo, mActivityToken,
+-                    user, restricted, mDisplay, mOverrideConfiguration);
++                    user, restricted, mDisplay, mOverrideConfiguration, themePackageName);
+         }
+ 
+         LoadedApk pi = mMainThread.getPackageInfo(packageName, mResources.getCompatibilityInfo(),
+                 flags, user.getIdentifier());
+         if (pi != null) {
+             ContextImpl c = new ContextImpl(this, mMainThread, pi, mActivityToken,
+-                    user, restricted, mDisplay, mOverrideConfiguration);
++                    user, restricted, mDisplay, mOverrideConfiguration, themePackageName);
+             if (c.mResources != null) {
+                 return c;
+             }
+@@ -1995,7 +2001,7 @@ class ContextImpl extends Context {
+     static ContextImpl createSystemContext(ActivityThread mainThread) {
+         LoadedApk packageInfo = new LoadedApk(mainThread);
+         ContextImpl context = new ContextImpl(null, mainThread,
+-                packageInfo, null, null, false, null, null);
++                packageInfo, null, null, false, null, null, null);
+         context.mResources.updateConfiguration(context.mResourcesManager.getConfiguration(),
+                 context.mResourcesManager.getDisplayMetricsLocked(Display.DEFAULT_DISPLAY));
+         return context;
+@@ -2004,7 +2010,7 @@ class ContextImpl extends Context {
+     static ContextImpl createAppContext(ActivityThread mainThread, LoadedApk packageInfo) {
+         if (packageInfo == null) throw new IllegalArgumentException("packageInfo");
+         return new ContextImpl(null, mainThread,
+-                packageInfo, null, null, false, null, null);
++                packageInfo, null, null, false, null, null, null);
+     }
+ 
+     static ContextImpl createActivityContext(ActivityThread mainThread,
+@@ -2012,12 +2018,19 @@ class ContextImpl extends Context {
+         if (packageInfo == null) throw new IllegalArgumentException("packageInfo");
+         if (activityToken == null) throw new IllegalArgumentException("activityInfo");
+         return new ContextImpl(null, mainThread,
+-                packageInfo, activityToken, null, false, null, null);
++                packageInfo, activityToken, null, false, null, null, null);
+     }
+ 
+     private ContextImpl(ContextImpl container, ActivityThread mainThread,
+             LoadedApk packageInfo, IBinder activityToken, UserHandle user, boolean restricted,
+             Display display, Configuration overrideConfiguration) {
++        this(container, mainThread, packageInfo, activityToken, user, restricted, display,
++                overrideConfiguration, null);
++    }
++
++    private ContextImpl(ContextImpl container, ActivityThread mainThread,
++            LoadedApk packageInfo, IBinder activityToken, UserHandle user, boolean restricted,
++            Display display, Configuration overrideConfiguration, String themePackageName) {
+         mOuterContext = this;
+ 
+         mMainThread = mainThread;
+@@ -2048,15 +2061,17 @@ class ContextImpl extends Context {
+ 
+         Resources resources = packageInfo.getResources(mainThread);
+         if (resources != null) {
+-            if (activityToken != null
++            if (activityToken != null || themePackageName != null
+                     || displayId != Display.DEFAULT_DISPLAY
+                     || overrideConfiguration != null
+                     || (compatInfo != null && compatInfo.applicationScale
+                     != resources.getCompatibilityInfo().applicationScale)) {
+-                resources = mResourcesManager.getTopLevelResources(
++                resources = themePackageName == null ? mResourcesManager.getTopLevelResources(
+                         packageInfo.getResDir(), packageInfo.getOverlayDirs(), displayId,
+                         packageInfo.getAppDir(), overrideConfiguration,
+-                        compatInfo, activityToken, this);
++                        compatInfo, activityToken, this) :
++                mResourcesManager.getTopLevelThemedResources(packageInfo.getResDir(), displayId,
++                        packageInfo.getPackageName(), themePackageName, compatInfo ,activityToken);
+             }
+         }
+         mResources = resources;
+diff --git a/core/java/android/content/Context.java b/core/java/android/content/Context.java
+index 1065a54..82b09cb 100644
+--- a/core/java/android/content/Context.java
++++ b/core/java/android/content/Context.java
+@@ -2888,6 +2888,18 @@ public abstract class Context {
+             throws PackageManager.NameNotFoundException;
+ 
+     /**
++     * Similar to {@link #createPackageContext(String, int)}, but with a
++     * different {@link UserHandle}. For example, {@link #getContentResolver()}
++     * will open any {@link Uri} as the given user.  A theme package can be
++     * specified which will be used when adding resources to this context
++     *
++     * @hide
++     */
++    public abstract Context createPackageContextAsUser(
++            String packageName, String themePackageName, int flags, UserHandle user)
++            throws PackageManager.NameNotFoundException;
++
++    /**
+      * Get the userId associated with this context
+      * @return user id
+      *
+diff --git a/core/java/android/content/ContextWrapper.java b/core/java/android/content/ContextWrapper.java
+index a708dad..ab566c9 100644
+--- a/core/java/android/content/ContextWrapper.java
++++ b/core/java/android/content/ContextWrapper.java
+@@ -646,6 +646,13 @@ public class ContextWrapper extends Context {
+ 
+     /** @hide */
+     @Override
++    public Context createPackageContextAsUser(String packageName, String themePackageName,
++            int flags, UserHandle user) throws PackageManager.NameNotFoundException {
++        return mBase.createPackageContextAsUser(packageName, themePackageName, flags, user);
++    }
++
++    /** @hide */
++    @Override
+     public int getUserId() {
+         return mBase.getUserId();
+     }
+diff --git a/core/java/android/content/pm/PackageManager.java b/core/java/android/content/pm/PackageManager.java
+index cff34d2..734adc4 100644
+--- a/core/java/android/content/pm/PackageManager.java
++++ b/core/java/android/content/pm/PackageManager.java
+@@ -2624,18 +2624,20 @@ public abstract class PackageManager {
+             throws NameNotFoundException;
+ 
+     /** @hide */
+-    public abstract Resources getThemedResourcesForApplication(ApplicationInfo app,
+-                                                               String themePkgName)
++    public abstract Resources getResourcesForApplicationAsUser(String appPackageName, int userId)
+             throws NameNotFoundException;
+ 
+     /** @hide */
++    public abstract Resources getThemedResourcesForApplication(ApplicationInfo app,
++            String themePkgName) throws NameNotFoundException;
++
++    /** @hide */
+     public abstract Resources getThemedResourcesForApplication(String appPackageName,
+-                                                               String themePkgName)
+-            throws NameNotFoundException;
++            String themePkgName) throws NameNotFoundException;
+ 
+     /** @hide */
+-    public abstract Resources getResourcesForApplicationAsUser(String appPackageName, int userId)
+-            throws NameNotFoundException;
++    public abstract Resources getThemedResourcesForApplicationAsUser(String appPackageName,
++            String themePkgName, int userId) throws NameNotFoundException;
+ 
+     /**
+      * Retrieve overall information about an application package defined
+diff --git a/core/java/android/content/res/ThemeConfig.java b/core/java/android/content/res/ThemeConfig.java
+index 9a5afa8..99b6728 100644
+--- a/core/java/android/content/res/ThemeConfig.java
++++ b/core/java/android/content/res/ThemeConfig.java
+@@ -45,6 +45,12 @@ import java.util.Map;
+ public class ThemeConfig implements Cloneable, Parcelable, Comparable<ThemeConfig> {
+     public static final String TAG = ThemeConfig.class.getCanonicalName();
+     public static final String HOLO_DEFAULT = "holo";
++
++    /**
++     * Special package name for theming the navbar separate from the rest of SystemUI
++     */
++    public static final String SYSTEMUI_NAVBAR_PKG = "com.android.systemui.navbar";
++
+     // Key for any app which does not have a specific theme applied
+     private static final String KEY_DEFAULT_PKG = "default";
+     private static final HoloConfig mHoloConfig = new HoloConfig();
+diff --git a/core/java/android/provider/ThemesContract.java b/core/java/android/provider/ThemesContract.java
+index e2d68e8..0f6f8d6 100644
+--- a/core/java/android/provider/ThemesContract.java
++++ b/core/java/android/provider/ThemesContract.java
+@@ -463,5 +463,29 @@ public class ThemesContract {
+          * <P>Type: BLOB (bitmap)</P>
+          */
+         public static final String NAVBAR_RECENT_BUTTON = "navbar_recent_button";
++
++        /**
++         * Cached image of the 1/4 icons
++         * <P>Type: BLOB (bitmap)</P>
++         */
++        public static final String ICON_PREVIEW_1 = "icon_preview_1";
++
++        /**
++         * Cached image of the 2/4 icons
++         * <P>Type: BLOB (bitmap)</P>
++         */
++        public static final String ICON_PREVIEW_2 = "icon_preview_2";
++
++        /**
++         * Cached image of the 3/4 icons
++         * <P>Type: BLOB (bitmap)</P>
++         */
++        public static final String ICON_PREVIEW_3 = "icon_preview_3";
++
++        /**
++         * Cached image of the 4/4 icons
++         * <P>Type: BLOB (bitmap)</P>
++         */
++        public static final String ICON_PREVIEW_4 = "icon_preview_4";
+     }
+ }
+diff --git a/core/java/android/widget/RemoteViews.java b/core/java/android/widget/RemoteViews.java
+index b290744..2101648 100644
+--- a/core/java/android/widget/RemoteViews.java
++++ b/core/java/android/widget/RemoteViews.java
+@@ -2402,11 +2402,17 @@ public class RemoteViews implements Parcelable, Filter {
+ 
+     /** @hide */
+     public View apply(Context context, ViewGroup parent, OnClickHandler handler) {
++        return apply(context, parent, handler, null);
++    }
++
++    /** @hide */
++    public View apply(Context context, ViewGroup parent, OnClickHandler handler,
++            String themePackageName) {
+         RemoteViews rvToApply = getRemoteViewsToApply(context);
+ 
+         View result;
+ 
+-        Context c = prepareContext(context);
++        Context c = prepareContext(context, themePackageName);
+ 
+         LayoutInflater inflater = (LayoutInflater)
+                 c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+@@ -2447,7 +2453,7 @@ public class RemoteViews implements Parcelable, Filter {
+             }
+         }
+ 
+-        prepareContext(context);
++        prepareContext(context, null);
+         rvToApply.performApply(v, (ViewGroup) v.getParent(), handler);
+     }
+ 
+@@ -2462,14 +2468,14 @@ public class RemoteViews implements Parcelable, Filter {
+         }
+     }
+ 
+-    private Context prepareContext(Context context) {
++    private Context prepareContext(Context context, String themePackageName) {
+         Context c;
+         String packageName = mPackage;
+ 
+         if (packageName != null) {
+             try {
+-                c = context.createPackageContextAsUser(
+-                        packageName, Context.CONTEXT_RESTRICTED, mUser);
++                c = context.createPackageContextAsUser(packageName, themePackageName,
++                        Context.CONTEXT_RESTRICTED, mUser);
+             } catch (NameNotFoundException e) {
+                 Log.e(LOG_TAG, "Package name " + packageName + " not found");
+                 c = context;
+diff --git a/core/java/com/android/internal/app/ProcessStats.java b/core/java/com/android/internal/app/ProcessStats.java
+index 0aad0b5..b46a201 100644
+--- a/core/java/com/android/internal/app/ProcessStats.java
++++ b/core/java/com/android/internal/app/ProcessStats.java
+@@ -2717,6 +2717,11 @@ public final class ProcessStats implements Parcelable {
+                 mPssTable = mStats.mAddLongTable;
+                 mPssTableSize = mStats.mAddLongTableSize;
+             }
++
++            if (((off>>OFFSET_ARRAY_SHIFT)&OFFSET_ARRAY_MASK) >= mStats.mLongs.size()) {
++                return;
++            }
++
+             long[] longs = mStats.mLongs.get((off>>OFFSET_ARRAY_SHIFT)&OFFSET_ARRAY_MASK);
+             idx = (off>>OFFSET_INDEX_SHIFT)&OFFSET_INDEX_MASK;
+             long count = longs[idx+PSS_SAMPLE_COUNT];
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/BaseStatusBar.java b/packages/SystemUI/src/com/android/systemui/statusbar/BaseStatusBar.java
+index abfae2c..806d18e 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/BaseStatusBar.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/BaseStatusBar.java
+@@ -34,6 +34,7 @@ import android.content.pm.ApplicationInfo;
+ import android.content.pm.PackageManager.NameNotFoundException;
+ import android.content.res.Configuration;
+ import android.content.res.Resources;
++import android.content.res.ThemeConfig;
+ import android.database.ContentObserver;
+ import android.graphics.drawable.Drawable;
+ import android.graphics.PixelFormat;
+@@ -1075,10 +1076,15 @@ public abstract class BaseStatusBar extends SystemUI implements
+ 
+         View contentViewLocal = null;
+         View bigContentViewLocal = null;
++        final ThemeConfig themeConfig = mContext.getResources().getConfiguration().themeConfig;
++        String themePackageName = themeConfig != null ?
++                themeConfig.getOverlayPkgNameForApp(mContext.getPackageName()) : null;
+         try {
+-            contentViewLocal = contentView.apply(mContext, adaptive, mOnClickHandler);
++            contentViewLocal = contentView.apply(mContext, adaptive, mOnClickHandler,
++                    themePackageName);
+             if (bigContentView != null) {
+-                bigContentViewLocal = bigContentView.apply(mContext, adaptive, mOnClickHandler);
++                bigContentViewLocal = bigContentView.apply(mContext, adaptive, mOnClickHandler,
++                        themePackageName);
+             }
+         }
+         catch (RuntimeException e) {
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/StatusBarIconView.java b/packages/SystemUI/src/com/android/systemui/statusbar/StatusBarIconView.java
+index 91b313b..cc5b2b7 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/StatusBarIconView.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/StatusBarIconView.java
+@@ -20,6 +20,8 @@ import android.app.Notification;
+ import android.content.Context;
+ import android.content.pm.PackageManager;
+ import android.content.res.Resources;
++import android.content.res.ThemeConfig;
++import android.database.ContentObserver;
+ import android.graphics.Canvas;
+ import android.graphics.Paint;
+ import android.graphics.Rect;
+@@ -192,8 +194,10 @@ public class StatusBarIconView extends AnimatedImageView {
+                 if (userId == UserHandle.USER_ALL) {
+                     userId = UserHandle.USER_OWNER;
+                 }
+-                r = context.getPackageManager()
+-                        .getResourcesForApplicationAsUser(icon.iconPackage, userId);
++                PackageManager pm = context.getPackageManager();
++                final ThemeConfig config = context.getResources().getConfiguration().themeConfig;
++                final String pkgName = config.getOverlayPkgNameForApp(context.getPackageName());
++                r = pm.getThemedResourcesForApplicationAsUser(icon.iconPackage, pkgName, userId);
+             } catch (PackageManager.NameNotFoundException ex) {
+                 Log.e(TAG, "Icon package not found: " + icon.iconPackage);
+                 return null;
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java
+index 35c768b..17083a7 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java
+@@ -120,6 +120,8 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
+     // performs manual animation in sync with layout transitions
+     private final NavTransitionListener mTransitionListener = new NavTransitionListener();
+ 
++    private Resources mThemedResources;
++
+     private class NavTransitionListener implements TransitionListener {
+         private boolean mBackTransitioning;
+         private boolean mHomeAppearing;
+@@ -379,8 +381,9 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
+         mHomeLandIcon = res.getDrawable(R.drawable.ic_sysbar_home_land);
+     }
+ 
+-    public void updateResources() {
+-        getIcons(mContext.getResources());
++    public void updateResources(Resources res) {
++        mThemedResources = res;
++        getIcons(mThemedResources);
+         for (int i = 0; i < mRotatedViews.length; i++) {
+             ViewGroup container = (ViewGroup) mRotatedViews[i];
+             if (container != null) {
+@@ -397,17 +400,17 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
+             for (int i = 0; i < nChildren; i++) {
+                 final View child = navButtons.getChildAt(i);
+                 if (child instanceof KeyButtonView) {
+-                    ((KeyButtonView) child).updateResources();
++                    ((KeyButtonView) child).updateResources(mThemedResources);
+                 }
+             }
+         }
+         KeyButtonView kbv = (KeyButtonView) findViewById(R.id.search_light);
+         if (kbv != null) {
+-            kbv.updateResources();
++            kbv.updateResources(mThemedResources);
+         }
+         kbv = (KeyButtonView) findViewById(R.id.camera_button);
+         if (kbv != null) {
+-            kbv.updateResources();
++            kbv.updateResources(mThemedResources);
+         }
+     }
+ 
+@@ -423,7 +426,8 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
+                     // ImageView keeps track of the resource ID and if it is the same
+                     // it will not update the drawable.
+                     iv.setImageDrawable(null);
+-                    iv.setImageResource(R.drawable.ic_sysbar_lights_out_dot_large);
++                    iv.setImageDrawable(mThemedResources.getDrawable(
++                            R.drawable.ic_sysbar_lights_out_dot_large));
+                 }
+             }
+         }
+@@ -431,7 +435,7 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
+ 
+     @Override
+     public void setLayoutDirection(int layoutDirection) {
+-        getIcons(mContext.getResources());
++        if (mThemedResources != null) getIcons(mThemedResources);
+ 
+         super.setLayoutDirection(layoutDirection);
+     }
+@@ -515,7 +519,6 @@ public class NavigationBarView extends LinearLayout implements NavigationCallbac
+             ((ImageView)findViewWithTag(NavbarEditor.NAVBAR_HOME)).setImageDrawable(
+                 mVertical ? mHomeLandIcon : mHomeIcon);
+         }
+-        setDisabledFlags(mDisabledFlags, true);
+     }
+ 
+     public void setButtonDrawable(int buttonId, final int iconId) {
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+index cb48fab..beb94a7 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+@@ -132,6 +132,7 @@ import com.android.systemui.statusbar.policy.LocationController;
+ import com.android.systemui.statusbar.policy.NetworkController;
+ import com.android.systemui.statusbar.policy.NotificationRowLayout;
+ import com.android.systemui.statusbar.policy.OnSizeChangedListener;
++import com.android.systemui.statusbar.policy.RotationLockController;
+ 
+ import java.io.FileDescriptor;
+ import java.io.PrintWriter;
+@@ -870,6 +871,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
+             if (showNav && !mRecreating) {
+                 mNavigationBarView =
+                     (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
++                mNavigationBarView.updateResources(getNavbarThemedResources());
+ 
+                 mNavigationBarView.setDisabledFlags(mDisabled);
+                 mNavigationBarView.setBar(this);
+@@ -1453,7 +1455,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
+     private void repositionNavigationBar() {
+         if (mNavigationBarView == null || !mNavigationBarView.isAttachedToWindow()) return;
+ 
+-        CustomTheme newTheme = mContext.getResources().getConfiguration().customTheme;
++        ThemeConfig newTheme = mContext.getResources().getConfiguration().themeConfig;
+         if (newTheme != null &&
+                 (mCurrentTheme == null || !mCurrentTheme.equals(newTheme))) {
+             // Nevermind, this will be re-created
+@@ -1487,6 +1489,18 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
+         return lp;
+     }
+ 
++    private Resources getNavbarThemedResources() {
++        String pkgName = mCurrentTheme.getOverlayPkgNameForApp(ThemeConfig.SYSTEMUI_NAVBAR_PKG);
++        Resources res = null;
++        try {
++            res = mContext.getPackageManager().getThemedResourcesForApplication(
++                    mContext.getPackageName(), pkgName);
++        } catch (PackageManager.NameNotFoundException e) {
++            res = mContext.getResources();
++        }
++        return res;
++    }
++
+     private void addHeadsUpView() {
+         WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
+@@ -3801,7 +3815,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
+         makeStatusBarView();
+         repositionNavigationBar();
+         if (mNavigationBarView != null) {
+-            mNavigationBarView.updateResources();
++            mNavigationBarView.updateResources(getNavbarThemedResources());
+         }
+ 
+         // recreate StatusBarIconViews.
+@@ -3888,7 +3902,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode {
+ 
+         // Update the NavigationBar container
+         if (mNavigationBarView != null)  {
+-            mNavigationBarView.updateResources();
++            mNavigationBarView.updateResources(getNavbarThemedResources());
+             updateSearchPanel();
+         }
+     }
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java
+index d2d1d8d..c0f7645 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java
+@@ -112,9 +112,9 @@ public class KeyButtonView extends ImageView {
+         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+     }
+ 
+-    public void updateResources() {
++    public void updateResources(Resources res) {
+         if (mGlowBgId != 0) {
+-            mGlowBG = mContext.getResources().getDrawable(mGlowBgId);
++            mGlowBG = res.getDrawable(mGlowBgId);
+         }
+     }
+ 
+diff --git a/test-runner/src/android/test/mock/MockContext.java b/test-runner/src/android/test/mock/MockContext.java
+index 0d9cd18..2b9b485 100644
+--- a/test-runner/src/android/test/mock/MockContext.java
++++ b/test-runner/src/android/test/mock/MockContext.java
+@@ -559,6 +559,13 @@ public class MockContext extends Context {
+ 
+     /** {@hide} */
+     @Override
++    public Context createPackageContextAsUser(String packageName, String themePackageName,
++            int flags, UserHandle user) throws PackageManager.NameNotFoundException {
++        throw new UnsupportedOperationException();
++    }
++
++    /** {@hide} */
++    @Override
+     public int getUserId() {
+         throw new UnsupportedOperationException();
+     }
+diff --git a/test-runner/src/android/test/mock/MockPackageManager.java b/test-runner/src/android/test/mock/MockPackageManager.java
+index 719913c..f8dbd75 100644
+--- a/test-runner/src/android/test/mock/MockPackageManager.java
++++ b/test-runner/src/android/test/mock/MockPackageManager.java
+@@ -402,22 +402,29 @@ public class MockPackageManager extends PackageManager {
+ 
+     /** @hide */
+     @Override
++    public Resources getResourcesForApplicationAsUser(String appPackageName, int userId) {
++        throw new UnsupportedOperationException();
++    }
++
++    /** @hide */
++    @Override
+     public Resources getThemedResourcesForApplication(ApplicationInfo app, String themePkgName)
+-    throws NameNotFoundException {
++            throws NameNotFoundException {
+         return null;
+     }
+ 
+     /** @hide */
+     @Override
+     public Resources getThemedResourcesForApplication(String appPackageName, String themePkgName)
+-    throws NameNotFoundException {
++            throws NameNotFoundException {
+         return null;
+     }
+ 
+     /** @hide */
+     @Override
+-    public Resources getResourcesForApplicationAsUser(String appPackageName, int userId) {
+-        throw new UnsupportedOperationException();
++    public Resources getThemedResourcesForApplicationAsUser(String appPackageName,
++            String themePkgName, int userId) throws NameNotFoundException {
++        return null;
+     }
+ 
+     @Override
