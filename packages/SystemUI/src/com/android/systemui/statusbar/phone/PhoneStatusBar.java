@@ -42,12 +42,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-<<<<<<< HEAD
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-=======
 import android.content.pm.PackageManager;
->>>>>>> 143792900b2c86d14e9d55a133a44dbebc80ab8f
 import android.content.res.Configuration;
 import android.content.res.ThemeConfig;
 import android.content.res.Resources;
@@ -101,11 +98,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
-<<<<<<< HEAD
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
-=======
->>>>>>> 143792900b2c86d14e9d55a133a44dbebc80ab8f
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;

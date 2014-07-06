@@ -449,25 +449,6 @@ public final class Configuration implements Parcelable, Comparable<Configuration
     public static final String THEME_PKG_CONFIGURATION_PERSISTENCE_PROPERTY = "themeConfig";
 
     /**
-     * @hide
-     * Serialized json structure mapping app pkgnames to their set theme.
-     *
-     * {
-     *  "default":{
-     *"     stylePkgName":"com.jasonevil.theme.miuiv5dark",
-     *      "iconPkgName":"com.cyngn.hexo",
-     *      "fontPkgName":"com.cyngn.hexo"
-     *   }
-     * }
-
-     * If an app does not have a specific theme set then it will use the 'default' theme+
-     * example: 'default' -> overlayPkgName: 'org.blue.theme'
-     *          'com.android.phone' -> 'com.red.theme'
-     *          'com.google.vending' -> 'com.white.theme'
-     */
-    public static final String THEME_PKG_CONFIGURATION_PERSISTENCE_PROPERTY = "themeConfig";
-
-    /**
      * Overall orientation of the screen.  May be one of
      * {@link #ORIENTATION_LANDSCAPE}, {@link #ORIENTATION_PORTRAIT}.
      */
