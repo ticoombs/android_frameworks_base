@@ -593,6 +593,7 @@ class QuickSettings {
                             public void onClick(View v) {
                                 boolean currentState = mConnectivityManager.getMobileDataEnabled();
                                 mConnectivityManager.setMobileDataEnabled(!currentState);
+                                mModel.refreshRssiTile();
                             }
                         });
                         rssiTile.setFrontOnLongClickListener(new View.OnLongClickListener() {
@@ -979,8 +980,8 @@ class QuickSettings {
                     immersiveTile.setBackOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            // instead of just returning, assume user wants to turn on immersive
-                            if(mModel.getImmersiveMode() == 0) {
+                            // instead of just returning, assume user wants to turn on/off immersive
+                            if(mModel.getImmersiveMode() == 0 || mModel.getImmersiveMode() == 4) {
                                 immersiveTile.swapTiles(true);
                                 return;
                             }
@@ -1100,6 +1101,14 @@ class QuickSettings {
                         public void refreshView(QuickSettingsTileView view, State state) {
                             sleepTile.setBackImageResource(state.iconId);
                             sleepTile.setBackText(state.label);
+                        }
+                    });
+                    sleepTile.setBackOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            collapsePanels();
+                            startSettingsActivity(android.provider.Settings.ACTION_DISPLAY_SETTINGS);
+                            return true;
                         }
                     });
                     parent.addView(sleepTile);
