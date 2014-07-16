@@ -1754,8 +1754,19 @@ public class QuickSettingsModel implements BluetoothStateChangeCallback,
         }
     }
 
-    protected void switchImmersiveGlobal() {
+    private int getImmersiveLastActiveState() {
+        return Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.IMMERSIVE_LAST_ACTIVE_STATE, 1);
+    }
+
+    private void setImmersiveLastActiveState(int style) {
+        Settings.System.putInt(mContext.getContentResolver(),
+                Settings.System.IMMERSIVE_LAST_ACTIVE_STATE, style);
+    }
+
+     protected void switchImmersiveGlobal() {
         final int current = getImmersiveMode();
+        final int lastState = getImmersiveLastActiveState();
         switch(current) {
             case IMMERSIVE_MODE_OFF:
             case IMMERSIVE_MODE_APP:
