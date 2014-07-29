@@ -84,6 +84,9 @@
 
     <!-- Needed for navring target "kill app" -->
     <uses-permission android:name="android.permission.FORCE_STOP_PACKAGES" />
+    
+    <!-- WallpaperManager -->
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
 
     <application
         android:persistent="true"
