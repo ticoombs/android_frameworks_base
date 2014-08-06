@@ -16,7 +16,10 @@
 
 package com.android.systemui.statusbar.phone;
 
+import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
@@ -55,8 +58,11 @@ public class NotificationPanelView extends PanelView {
     private boolean mTrackingSwipe;
     private boolean mSwipeTriggered;
 
+    private int mCurrentUserId = 0;
+
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mCurrentUserId = ActivityManager.getCurrentUser();
     }
 
     public void setStatusBar(PhoneStatusBar bar) {
@@ -154,6 +160,12 @@ public class NotificationPanelView extends PanelView {
                     } else if (quickPulldownMode == 2
                             && mGestureStartX < getWidth() * (1.0f - STATUS_BAR_LEFT_PERCENTAGE)) {
                         flip = true;
+                    if(Settings.System.getIntForUser(mContext.getContentResolver(),
+                                Settings.System.QUICK_SETTINGS_QUICK_PULL_DOWN, 0,
+                                UserHandle.USER_CURRENT) != 2) {
+                            if (event.getX(0) > mStatusBar.getStatusBarView().getWidth() * QUICK_PULL_DOWN_PERCENTAGE) {
+                                flip = true;
+                            }
                     }
                     break;
                 case MotionEvent.ACTION_POINTER_DOWN:
