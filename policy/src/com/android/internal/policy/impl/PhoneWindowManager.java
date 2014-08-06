@@ -751,9 +751,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.VIRTUAL_KEYS_HAPTIC_FEEDBACK), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.USE_EDGE_SERVICE_FOR_GESTURES), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.DEV_FORCE_SHOW_NAVBAR), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
@@ -1303,14 +1300,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     }
                     @Override
                     public void onSwipeFromBottom() {
-                        if (mNavigationBar != null && mNavigationBarOnBottom) {
+                        if (mNavigationBar != null && mNavigationBarOnBottom
+                                && !(immersiveModeImplementsPie() && immersiveModeHidesNavigationBar())) {
                             requestTransientBars(mNavigationBar);
                         }
                     }
                     @Override
                     public void onSwipeFromRight() {
-                        if (mNavigationBar != null && !mNavigationBarOnBottom &&
-                                !mNavigationBarLeftInLandscape) {
+                        if (mNavigationBar != null && !mNavigationBarOnBottom
+                                && !(immersiveModeImplementsPie() && immersiveModeHidesNavigationBar())) {
                             requestTransientBars(mNavigationBar);
                         }
                     }
